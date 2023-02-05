@@ -1,0 +1,73 @@
+version: '3.8'
+services:
+  database:
+    container_name: influxdb
+    image: influx_image
+    restart: always
+    env_file:
+      - SERVICES/INFLUXDB/.env
+    ports:
+      - "8086:8086"
+    build:
+      context: .
+      dockerfile: SERVICES/INFLUXDB/Dockerfile
+    networks:
+      default:
+        aliases:
+          - influxdb
+
+  broker:
+    container_name: rabbit
+    image: rabbit_image
+    restart: always
+    ports:
+      - "1883:1883"
+      - "15672:15672"
+      - "5672:5672"
+    build:
+      context: .
+      dockerfile: SERVICES/RABBIT/Dockerfile
+    networks:
+      default:
+        aliases:
+          - rabbit
+
+  visualizador:
+    container_name: grafana
+    image: grafana_image
+    restart: always
+    ports:
+      - "3000:3000"
+    build:
+      context: .
+      dockerfile: SERVICES/GRAFANA/Dockerfile
+
+  telegraf:
+    container_name: telegraf
+    image: telegraf_image
+    links:
+      - database
+    restart: always
+    build:
+      dockerfile: SERVICES/TELEGRAF/Dockerfile 
+    depends_on:
+      - broker
+      - database
+
+  analitica:
+    container_name: analitica
+    image: analitica_image
+    restart: always
+    build:
+      context: .
+      dockerfile: SERVICES/ANALITICA/Dockerfile
+    depends_on:
+      - database
+      - broker
+    links:      
+      - database
+
+  
+  
+
+#gXbb65wlqaqmr5HQtOBYVoc-jJxFoPo5iNA5tGPUyoP5Nf8UWyjLjH_XwX0sI4LPW1fKJpy3SqLXtSIBPH7V4g==     token influx
